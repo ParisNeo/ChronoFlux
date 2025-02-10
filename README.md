@@ -1,4 +1,4 @@
-# ChronoFlux: Neural Age Transformation Model ⏳🧬
+# ChronoFlux: Neural Age Transformation Model (WIP) ⏳🧬
 
 [![Apache License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?logo=PyTorch&logoColor=white)](https://pytorch.org/)
@@ -31,7 +31,7 @@ from chronoflux import age_transformation
 from PIL import Image
 
 # Load from Hugging Face Hub
-model = age_transformation.load_model("your-username/ChronoFlux")
+model = age_transformation.load_model("ParisNeo/ChronoFlux")
 
 # Transform image
 input_image = Image.open("person.jpg")
@@ -47,8 +47,8 @@ result.save("aged_person.jpg")
 ## Training 🏋️♂️
 1. Clone repo:
 ```bash
-git clone https://github.com/your-username/ChronoFlux.git
-cd ChronoFlux
+git clone https://github.com/ParisNeo/ChronoFlux.git
+cd scripts
 ```
 
 2. Train model:

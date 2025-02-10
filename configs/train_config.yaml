@@ -1,0 +1,16 @@
+defaults:
+  - _self_
+
+device: "cuda"
+# Set this to the local folder where you unzipped UTKFace images.
+dataset_path: "C:/Users/aloui/Documents/ai/ChronoFlux/dataset/UTKface"
+batch_size: 32
+epochs: 100
+lr: 0.0002
+beta1: 0.5
+beta2: 0.999
+latent_dim: 100        # Dimension for latent noise (for generation)
+resolution: 64         # Resize images to 64x64
+log_interval: 100      # Iterations between logging sample images
+checkpoint_interval: 10  # Save a checkpoint every 10 epochs
+output_dir: "./results"
