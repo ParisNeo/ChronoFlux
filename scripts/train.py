@@ -13,6 +13,21 @@ from chronoflux.model import AgeEmbedding, Generator, Discriminator
 config = OmegaConf.load("configs/train_config.yaml")
 
 
+def compute_gradient_penalty(D, real_images, fake_images, real_ages):
+    alpha = torch.rand(real_images.size(0), 1, 1, 1, device=device)
+    interpolates = (alpha * real_images + (1 - alpha) * fake_images).requires_grad_(True)
+    d_interpolates, _ = D(interpolates, real_ages)
+    gradients = torch.autograd.grad(
+        outputs=d_interpolates,
+        inputs=interpolates,
+        grad_outputs=torch.ones_like(d_interpolates),
+        create_graph=True,
+        retain_graph=True,
+    )[0]
+    gradients = gradients.view(gradients.size(0), -1)
+    gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean()
+    return gradient_penalty
+
 # 4. Custom Dataset
 class FaceAgingDataset(Dataset):
     def __init__(self, image_folder, transform):
@@ -50,7 +65,7 @@ dataloader = DataLoader(dataset, batch_size=config.batch_size, shuffle=True)
 G = Generator().to(device)
 D = Discriminator().to(device)
 
-optimizer_G = optim.Adam(G.parameters(), lr=config.lr, betas=(config.beta1, config.beta2))
+optimizer_G = optim.Adam(G.parameters(), lr=config.lr * 0.5, betas=(config.beta1, config.beta2))
 optimizer_D = optim.Adam(D.parameters(), lr=config.lr, betas=(config.beta1, config.beta2))
 
 adversarial_loss = nn.BCELoss()
@@ -66,7 +81,7 @@ for epoch in range(config.epochs):
         # --------------------
         optimizer_D.zero_grad()
 
-        valid = torch.ones(real_images.size(0), 1, device=device)
+        valid = torch.ones(real_images.size(0), 1, device=device)*0.9 # prevent the discriminator to be too confident
         fake = torch.zeros(real_images.size(0), 1, device=device)
 
         real_validity, real_age_pred = D(real_images, real_ages)
@@ -78,20 +93,22 @@ for epoch in range(config.epochs):
         fake_validity, fake_age_pred = D(fake_images.detach(), real_ages)
         d_fake_loss = adversarial_loss(fake_validity, fake)
 
-        d_loss = (d_real_loss + d_fake_loss) / 2
+        #gradient_penalty = compute_gradient_penalty(D, real_images, fake_images, real_ages)
+        d_loss = d_real_loss + d_fake_loss #+ 10 * gradient_penalty  
         d_loss.backward()
         optimizer_D.step()
 
         # --------------------
         # Train Generator
         # --------------------
-        optimizer_G.zero_grad()
+        if i % 5 == 0:  # Train generator less frequently
+            optimizer_G.zero_grad()
 
-        fake_validity, fake_age_pred = D(fake_images, real_ages)
-        g_loss = adversarial_loss(fake_validity, valid) + age_loss(fake_age_pred, real_ages)
+            fake_validity, fake_age_pred = D(fake_images, real_ages)
+            g_loss = adversarial_loss(fake_validity, valid) + age_loss(fake_age_pred, real_ages)
 
-        g_loss.backward()
-        optimizer_G.step()
+            g_loss.backward()
+            optimizer_G.step()
 
         if i % config.log_interval == 0:
             print(f"Epoch {epoch}/{config.epochs} | Batch {i} | D Loss: {d_loss.item():.4f} | G Loss: {g_loss.item():.4f}")
