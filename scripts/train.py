@@ -8,9 +8,14 @@ from PIL import Image
 import os
 from omegaconf import OmegaConf
 from chronoflux.model import AgeEmbedding, Generator, Discriminator
-
+from pathlib import Path
 # Load configuration from YAML file
 config = OmegaConf.load("configs/train_config.yaml")
+# Create a Path object for the results directory
+results_dir = Path("results")
+
+# Create the directory, ignoring if it exists
+results_dir.mkdir(exist_ok=True)
 
 
 def compute_gradient_penalty(D, real_images, fake_images, real_ages):
