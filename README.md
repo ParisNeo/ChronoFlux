@@ -79,7 +79,7 @@ We welcome contributions! Please see:
 
 ## License 📜
 ```
-Copyright 2023 Your Name
+Copyright 2023 ParisNeo
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
